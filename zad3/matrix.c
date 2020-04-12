@@ -11,12 +11,12 @@ int max_x, max_y;
 
 pthread_mutex_t muteksik;
 
-void *falling_digit(void *id)
+void *fallingDigit(void *id)
 {
-    int opcje[3] = {25, 50, 100};
+    int options[3] = {25, 50, 100};
     int digit = rand()%10;
     int x = rand() % max_x, y = 0;
-    int jednostki = opcje[rand()%2];
+    int units = options[rand()%2];
     while (y<=max_y)
     {
         attron(COLOR_PAIR(1));
@@ -25,7 +25,7 @@ void *falling_digit(void *id)
         refresh();
         pthread_mutex_unlock(&muteksik);
         attroff(COLOR_PAIR(1));
-        usleep((DELAY*jednostki)/max_y);
+        usleep((DELAY*units)/max_y);
         pthread_mutex_lock(&muteksik);
         mvprintw(y++, x, "  ");
         refresh();
@@ -50,7 +50,7 @@ int main()
     pthread_t thread;
     while (1)
     {
-        pthread_create(&thread, NULL, falling_digit, NULL);
+        pthread_create(&thread, NULL, fallingDigit, NULL);
         usleep(50000);
     }
 

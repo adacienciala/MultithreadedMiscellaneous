@@ -6,7 +6,7 @@
 #include <ncurses.h>
 
 #define MS 1000
-#define MAX_SCORE 10
+#define MAX_SCORE 5
 
 #define GREEN_FG 1
 #define RED_FG 2
@@ -34,32 +34,37 @@ struct treasure {
 
 pthread_mutex_t muteksik;
 
-void generate_board (int x, int y)
+void generateBoard (int x, int y)
 {
     board = (int **)calloc(y-5, sizeof(int *));
     int probability;
-    for (int i=0; i<y-5; ++i)
+    for (int i = 0; i <  y-5; ++i)
     {
         *(board+i) = (int *)calloc(x, sizeof(int));
     }
-    for (int i=0; i<y-5; ++i)
+    for (int i = 0; i < y-5; ++i)
     {
-        for (int j=0; j<x; ++j)
+        for (int j = 0; j < x; ++j)
         {
-            if (!i || i==(y-6) || !j || j==(x-1)) *(*(board+i)+j) = WALL;
+            if (!i || i ==(y-6) || !j || j==(x-1)) 
+                *(*(board+i)+j) = WALL;
             else
             {
                 probability = rand()%100;
-                if (probability<1) *(*(board+i)+j) = NERF;
-                else if (probability<2) *(*(board+i)+j) = BOOST;
-                else if (probability<3) *(*(board+i)+j) = TELEPORT;
-                else *(*(board+i)+j) = EMPTY;
+                if (probability < 1) 
+                    *(*(board+i)+j) = NERF;
+                else if (probability < 2) 
+                    *(*(board+i)+j) = BOOST;
+                else if (probability < 3) 
+                    *(*(board+i)+j) = TELEPORT;
+                else 
+                    *(*(board+i)+j) = EMPTY;
             }
         }
     }
-    for (int i=0; i<y-5; ++i)
+    for (int i = 0; i < y-5; ++i)
     {
-        for (int j=0; j<x; ++j)
+        for (int j = 0; j < x; ++j)
         {
             if (*(*(board+i)+j) == NERF)
             {
@@ -107,11 +112,11 @@ void generate_board (int x, int y)
     pthread_mutex_unlock(&muteksik);
 }
 
-void clear_board(int x, int y)
+void clearBoard(int x, int y)
 {
-    for (int i=1; i<(y-6); ++i)
+    for (int i = 1; i < (y-6); ++i)
     {
-        for (int j=1; j<(x-1); ++j)
+        for (int j = 1; j < (x-1); ++j)
         {
             pthread_mutex_lock(&muteksik);
             mvprintw(i, j, " ");
@@ -121,7 +126,7 @@ void clear_board(int x, int y)
     refresh();
 }
 
-void *draw_treasure (void *id)
+void *drawTreasure (void *id)
 {
     int rand_x, rand_y;
     while (1)
@@ -147,15 +152,7 @@ void *draw_treasure (void *id)
     return NULL;
 }
 
-//dżizas krajst za duzo bullshitu niepotrzebnego
-//funkcje na drukowanie ogarnac
-//teleporty w miare dzialaja
-//boosty i nerfy chyba freezuja
-//draw treasure dziala na 98%
-//algorytm dotarcia do skarbu jak u przedszkolaka ale to sie ogarnie jak zacznie dzialac
-//ALBO SIE WATEK GLOWNY KONCZY
-
-void *move_player (void *id)
+void *movePlayer (void *id)
 {
     int x = rand()%(max_x-2)+1;
     int y = rand()%(max_y-5-2)+1;
@@ -175,7 +172,7 @@ void *move_player (void *id)
         attroff(COLOR_PAIR(*(int *)id));
         refresh();
         pthread_mutex_unlock(&muteksik);
-        if (*(*(board+y)+x)==TELEPORT)
+        if (*(*(board+y)+x) == TELEPORT)
         {
             pthread_mutex_lock(&muteksik);
             *(*(board+y)+x) = EMPTY;
@@ -184,45 +181,30 @@ void *move_player (void *id)
             mvprintw(max_y-(5-*(int *)id), 15, "PLAYER %d TELEPORTED", *(int *)id);
             attroff(COLOR_PAIR(*(int *)id));
             pthread_mutex_unlock(&muteksik);
-            //BLINK OUT
-            mvprintw(y, x, " ");
-            refresh();
-            usleep(500*MS);
-            //BLINK IN
-            attron(COLOR_PAIR(*(int *)id));
-            mvprintw(y, x, "x");
-            refresh();
-            attroff(COLOR_PAIR(*(int *)id));
-            usleep(500*MS);
-            //BLINK OUT
-            mvprintw(y, x, " ");
-            refresh();
-            usleep(500*MS);
-            //BLINK IN
-            attron(COLOR_PAIR(*(int *)id));
-            mvprintw(y, x, "x");
-            refresh();
-            attroff(COLOR_PAIR(*(int *)id));
-            usleep(500*MS);
-            //BLINK OUT
-            mvprintw(y, x, " ");
-            refresh();
-            usleep(500*MS);
-            //BLINK IN
-            attron(COLOR_PAIR(*(int *)id));
-            mvprintw(y, x, "x");
-            refresh();
-            attroff(COLOR_PAIR(*(int *)id));
-            usleep(500*MS);
+
+            for (int i = 0; i < 3; ++i)
+            {
+                //BLINK OUT
+                mvprintw(y, x, " ");
+                refresh();
+                usleep(500*MS);
+                //BLINK IN
+                attron(COLOR_PAIR(*(int *)id));
+                mvprintw(y, x, "x");
+                refresh();
+                attroff(COLOR_PAIR(*(int *)id));
+                usleep(500*MS);
+            }
             //OUT
             mvprintw(y, x, " ");
             refresh();
+
             x = rand()%(max_x-2)+1;
             y = rand()%(max_y-5-2)+1;
         }
         else
         {
-            switch(*(*(board+y)+x))
+            switch (*(*(board+y)+x))
             {
                 case BOOST:
                     surprise = 0.5;
@@ -255,7 +237,7 @@ void *move_player (void *id)
                     refresh();
                     pthread_mutex_unlock(&muteksik);
                     attroff(COLOR_PAIR(*(int *)id));
-                    if (score==MAX_SCORE)
+                    if (score == MAX_SCORE)
                     {
                         winner = 1;
                         attron(COLOR_PAIR(*(int *)id));
@@ -283,20 +265,20 @@ void *move_player (void *id)
             mvprintw(y, x, " ");
             refresh();
             pthread_mutex_unlock(&muteksik);
-            if (x<treasure.x) ++x;
-            else if (x>treasure.x) --x;
+            if (x < treasure.x) ++x;
+            else if (x > treasure.x) --x;
             else
             {
-                if (y<treasure.y) ++y;
-                else if (y>treasure.y) --y;
+                if (y < treasure.y) ++y;
+                else if (y > treasure.y) --y;
             }
         }
     }
 }
 
-void free_board (int x, int y)
+void freeBoard (int x, int y)
 {
-    for (int i=0; i<y-5; ++i)
+    for (int i = 0; i < y-5; ++i)
     {
         free(*(board+i));
     }
@@ -331,7 +313,7 @@ int main()
     int tab[4];
 
     //SCORE BOARD
-    for (int i=4, j=1; i!=0; --i, ++j)
+    for (int i = 4, j = 1; i != 0; --i, ++j)
     {
         pthread_mutex_lock(&muteksik);
         attron(COLOR_PAIR(j));
@@ -340,14 +322,14 @@ int main()
         pthread_mutex_unlock(&muteksik);
     }
     //GAME BOX
-    for (int i=0; i<max_x; ++i)
+    for (int i = 0; i < max_x; ++i)
     {
         pthread_mutex_lock(&muteksik);
         mvprintw(0, i, "*");
         mvprintw(max_y-6, i, "*");
         pthread_mutex_unlock(&muteksik);
     }
-    for (int i=1; i<max_y-6; ++i)
+    for (int i = 1; i < max_y-6; ++i)
     {
         pthread_mutex_lock(&muteksik);
         mvprintw(i, 0, "*");
@@ -356,23 +338,23 @@ int main()
     }
     refresh();
 
-    generate_board(max_x, max_y);
+    generateBoard(max_x, max_y);
 
-    pthread_create(&precious, NULL, draw_treasure, NULL);
+    pthread_create(&precious, NULL, drawTreasure, NULL);
 
-    for(int i=0; i<4; ++i)
+    for(int i = 0; i < 4; ++i)
     {
         tab[i] = i+1;
-        pthread_create(player+i, NULL, move_player, (void *)(tab+i));
+        pthread_create(player+i, NULL, movePlayer, (void *)(tab+i));
     }
 
     pthread_join(precious, NULL);
-    for(int i=0; i<4; ++i)
+    for(int i = 0; i < 4; ++i)
     {
         pthread_cancel(player[i]);
     }
 
-    clear_board(max_x, max_y);
+    clearBoard(max_x, max_y);
 
     attron(COLOR_PAIR(YELLOW_FG));
     mvprintw((max_y-7)/2-1, max_x/2-9, "THE HUNT IS OVER!");
@@ -393,7 +375,7 @@ int main()
 
     pthread_mutex_destroy(&muteksik);
 
-    free_board(max_x, max_y);
+    freeBoard(max_x, max_y);
     usleep(5*10000000);
     endwin();
     return 0;

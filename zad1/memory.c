@@ -19,20 +19,18 @@
 
 int max_x, max_y, won=0;
 pthread_mutex_t muteksik;
-pthread_t printuje, zczytuje, zabijam;
+pthread_t amPrinting, amReading, amKilling;
 char seq[11] = {0};
 
 void *timer(void *id)
 {
     usleep(MS*5000);
-    pthread_cancel(printuje);
-    pthread_cancel(zczytuje);
+    pthread_cancel(amPrinting);
+    pthread_cancel(amReading);
     return NULL;
 }
 
-//nie wczytuje mi od razu jak wpisze, literki
-//musi poczekac chwilke
-void *input_reader (void *word)
+void *inputReader (void *word)
 {
     int len = strlen(seq);
     char a;
@@ -47,11 +45,11 @@ void *input_reader (void *word)
         while ((a=getch()) == ERR) ;
         if (a!=*((char *)word+i))
         {
-            pthread_cancel(printuje);
+            pthread_cancel(amPrinting);
             return NULL;
         }
     }
-    pthread_cancel(zabijam);
+    pthread_cancel(amKilling);
     pthread_mutex_lock(&muteksik);
     mvprintw(0, 0, "            ");
     refresh();
@@ -81,9 +79,9 @@ void *display (void *id)
             usleep(MS*500);
             pthread_mutex_unlock(&muteksik);
         }
-        pthread_create(&zczytuje, NULL, input_reader, seq);
-        pthread_create(&zabijam, NULL, timer, NULL);
-        pthread_join(zczytuje, NULL);
+        pthread_create(&amReading, NULL, inputReader, seq);
+        pthread_create(&amKilling, NULL, timer, NULL);
+        pthread_join(amReading, NULL);
     }
     won = 1;
     return NULL;
@@ -112,13 +110,13 @@ int main()
 
     getmaxyx(stdscr, max_y, max_x);
 
-    pthread_create(&printuje, NULL, display, NULL);
-    pthread_join(printuje, NULL);
+    pthread_create(&amPrinting, NULL, display, NULL);
+    pthread_join(amPrinting, NULL);
 
     pthread_mutex_lock(&muteksik);
     if (!won)
     {
-        mvprintw(0, 0, "YOU LOST");
+        mvprintw(0, 0, "YOU LOST.");
         refresh();
     }
     else

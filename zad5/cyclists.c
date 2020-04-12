@@ -32,24 +32,24 @@ void shuffle(void)
     }
 }
 
-void *sad_accidents (void *tab)
+void *sadAccidents (void *tab)
 {
-    int looser_id;
-    while (finished+unfinished<10)
+    int looserID;
+    while (finished + unfinished < 10)
     {
-        looser_id = rand()%10;
-        if (!dont[looser_id] && (rand()%2000==looser_id))
+        looserID = rand()%10;
+        if (!dont[looserID] && (rand()%2000 == looserID))
         {
-            if (!pthread_cancel(((pthread_t *)tab)[looser_id]))
+            if (!pthread_cancel(((pthread_t *)tab)[looserID]))
             {
                 pthread_mutex_lock(&muteksik);
-                dont[looser_id] = 1;
-                for (int i=0; i<(max_x/4*3); ++i)
+                dont[looserID] = 1;
+                for (int i = 0; i < (max_x/4*3); ++i)
                 {
-                    mvprintw(looser_id, i, " ");
+                    mvprintw(looserID, i, " ");
                 }
-                mvprintw(looser_id, (max_x/4*3)+2, "------");
-                mvprintw(looser_id, 2, "~~~%s~~~", accidents_oops[rand()%19]);
+                mvprintw(looserID, (max_x/4*3)+2, "------");
+                mvprintw(looserID, 2, "~~~%s~~~", accidents_oops[rand()%19]);
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 unfinished++;
@@ -59,24 +59,25 @@ void *sad_accidents (void *tab)
     }
 }
 
-void *move_cyclist (void *id)
+void *moveCyclist (void *id)
 {
     int x=0, y=*(int *)id;
     int speed[3] = {150, 175, 200};
     float boost[5] = {0.75, 1, 1, 1, 1.25};
-    int std_speed = speed[rand()%3]/max_x;
+    int stdSpeed = speed[rand()%3]/max_x;
 
     start = clock();
-    while(x<(max_x/4*3))
+    while (x < (max_x/4*3))
     {
         pthread_mutex_lock(&muteksik);
         mvprintw(y, x, "o");
         refresh();
-        if (!(x%3)) mvprintw(y, max_x/4*3+3+(x%3), "   ");
+        if (!(x%3)) 
+            mvprintw(y, max_x/4*3+3+(x%3), "   ");
         mvprintw(y, max_x/4*3+3+(x%3), ".");
         refresh();
         pthread_mutex_unlock(&muteksik);
-        usleep(DELAY*(std_speed*boost[rand()%5]));
+        usleep(DELAY*(stdSpeed*boost[rand()%5]));
         pthread_mutex_lock(&muteksik);
         mvprintw(y, x++, " ");
         refresh();
@@ -100,36 +101,34 @@ int main()
     initscr();
     noecho();
     curs_set(0);
+    getmaxyx(stdscr, max_y, max_x);
 
     srand(time(NULL));
 
-    getmaxyx(stdscr, max_y, max_x);
-
     shuffle();
-
     pthread_mutex_init(&muteksik, NULL);
 
-    for(int i=0; i<10; ++i)
+    for(int i = 0; i < 10; ++i)
     {
         mvprintw(i, max_x/4*3, "|");
     }
-    for(int i=0; i<(max_x/4*3); ++i)
+    for(int i = 0; i < (max_x/4*3); ++i)
     {
         mvprintw(10, i, "~");
     }
     refresh();
 
-    pthread_t threads[10], accident_thread;
+    pthread_t threads[10], accidentThread;
     int tab[10];
 
-    for(int i=0; i<10; ++i)
+    for(int i = 0; i < 10; ++i)
     {
         tab[i] = i;
-        pthread_create(threads+i, NULL, move_cyclist, tab+i);
+        pthread_create(threads+i, NULL, moveCyclist, tab+i);
     }
-    pthread_create(&accident_thread, NULL, sad_accidents, threads);
+    pthread_create(&accidentThread, NULL, sadAccidents, threads);
 
-    for(int i=0; i<10; ++i)
+    for(int i = 0; i < 10; ++i)
     {
         if (!dont[i]) pthread_join(threads[i], NULL);
     }

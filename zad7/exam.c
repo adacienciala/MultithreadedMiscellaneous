@@ -25,13 +25,6 @@ int max_x, max_y, queue, tables[4] = {0}, stats=0;
 pthread_mutex_t muteksik, muteksik2;
 sem_t semaforek;
 
-//animacja podchodzenia i odchodzenia od stolikow
-//zdal czy nie zdal, w podskokach albo wolniutko
-//nazwiska w srodku stolikow! albo numerki
-//pytanie kosa, czym jest watek, czym sie rozni kernel od jadra
-//statystyka zdane/niezdane
-//doktorzy w kacie, jak nie zdal, to happy XD
-
 char *strrev(char *str)
 {
     char *p1, *p2;
@@ -57,7 +50,7 @@ void *display (void *id)
         mvprintw(max_y*5/8, 0, "ooooo");
         if (queue<5)
         {
-            switch(queue)
+            switch (queue)
             {
                 case 4:
                     mvprintw(max_y*5/8, 0, " oooo");
@@ -84,20 +77,20 @@ void *display (void *id)
 
 void *student (void *id)
 {
-    int delay_opt = rand()%3-1;
+    int delayOpt = rand()%3-1;
     sem_wait(&semaforek);
     pthread_mutex_lock(&muteksik);
-    queue--;
-    int stolik;
-    for (stolik=0; stolik<4; ++stolik)
+    --queue;
+    int tableID;
+    for (tableID=0; tableID<4; ++tableID)
     {
-        if (!tables[stolik]) break;
+        if (!tables[tableID]) break;
     }
-    tables[stolik] = 1;
-    mvprintw(stolik+1, 0, "Student %d is answering questions...", *(int *)id);
+    tables[tableID] = 1;
+    mvprintw(tableID+1, 0, "Student %d is answering questions...", *(int *)id);
     refresh();
     pthread_mutex_unlock(&muteksik);
-    switch(stolik)
+    switch (tableID)
     {
         case 0:
             //GO TO THE SE TABLE
@@ -248,28 +241,28 @@ void *student (void *id)
             pthread_mutex_unlock(&muteksik);
             break;
     }
-    usleep(100*MS*(125+delay_opt*25));
+    usleep(100*MS*(125+delayOpt*25));
     sem_post(&semaforek);
     pthread_mutex_lock(&muteksik);
-    int zdane = !(rand()%4);
-    stats += zdane;
-    mvprintw(stolik+1, 0, "                                          ");
-    attron(COLOR_PAIR(zdane+1));
-    mvprintw(stolik+5, 0, "Student %d has answered the questions!", *(int *)id);
-    attroff(COLOR_PAIR(zdane+1));
+    int passed = !(rand()%4);
+    stats += passed;
+    mvprintw(tableID+1, 0, "                                          ");
+    attron(COLOR_PAIR(passed+1));
+    mvprintw(tableID+5, 0, "Student %d has answered the questions!", *(int *)id);
+    attroff(COLOR_PAIR(passed+1));
     refresh();
-    tables[stolik] = 0;
+    tables[tableID] = 0;
     pthread_mutex_unlock(&muteksik);
-    switch(stolik)
+    switch (tableID)
     {
         case 0:
             //GO OUT FROM THE SE TABLE
             for (int i=0; i<2; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y*3/4-1-i, max_x*3/7+max_x/14, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -281,9 +274,9 @@ void *student (void *id)
             for (int i=max_x*3/7+max_x/14; i<max_x; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y*3/4-2, i, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -298,9 +291,9 @@ void *student (void *id)
             for (int i=0; i<2; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y*3/4-1-i, max_x*2/7-max_x/14, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -312,9 +305,9 @@ void *student (void *id)
             for (int i=max_x*2/7-max_x/14; i<max_x; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y*3/4-2, i, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -329,9 +322,9 @@ void *student (void *id)
             for (int i=0; i<2; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y/2-1-i, max_x*3/7+max_x/14, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -343,9 +336,9 @@ void *student (void *id)
             for (int i=max_x*3/7+max_x/14; i<max_x; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y/2-2, i, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -360,9 +353,9 @@ void *student (void *id)
             for (int i=0; i<2; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y/2-1-i, max_x*2/7-max_x/14, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -374,9 +367,9 @@ void *student (void *id)
             for (int i=max_x*2/7-max_x/14; i<max_x; ++i)
             {
                 pthread_mutex_lock(&muteksik);
-                attron(COLOR_PAIR(zdane+1));
+                attron(COLOR_PAIR(passed+1));
                 mvprintw(max_y/2-2, i, "o");
-                attroff(COLOR_PAIR(zdane+1));
+                attroff(COLOR_PAIR(passed+1));
                 refresh();
                 pthread_mutex_unlock(&muteksik);
                 usleep(MS*100);
@@ -390,7 +383,7 @@ void *student (void *id)
     return NULL;
 }
 
-void draw_endcard (void)
+void drawEndcard (void)
 {
     char dr_duch[12][30]= {
             "            ##(#/            ",
@@ -431,7 +424,7 @@ void draw_endcard (void)
         attron(COLOR_PAIR(RED_FG));
         mvprintw(max_y*4/5+2, max_x-26, "FAILED:   %d", SIZE-stats);
         attroff(COLOR_PAIR(RED_FG));
-        //DANCING DOCTORS
+        //DANCING PROFFS
         for (int i=0; i<max_x; ++i)
         {
             mvprintw(max_y/5, i, "*");
@@ -471,11 +464,8 @@ void draw_endcard (void)
     }
 }
 
-void draw_class (void)
+void drawClass (void)
 {
-    //moglam zrobic 4 fory: dla kazdego stolika. moglam.
-    //ba, zrobilam.
-    //ale moglam tez wymyslic to XD
     int a=0, b=-1, c, d;
     for (int i=0; i<4; ++i)
     {
@@ -522,7 +512,7 @@ int main()
     pthread_t students[SIZE], queue;
     int tab[SIZE];
 
-    draw_class();
+    drawClass();
 
     pthread_create(&queue, NULL, display, NULL);
     usleep(MS*100);
@@ -540,7 +530,7 @@ int main()
     }
     pthread_cancel(queue);
 
-    draw_endcard();
+    drawEndcard();
 
     pthread_mutex_destroy(&muteksik);
     pthread_mutex_destroy(&muteksik2);

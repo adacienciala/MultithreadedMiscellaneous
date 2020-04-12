@@ -1,5 +1,5 @@
 CC=gcc
 LIBS=-lcurses -pthread
 
-stoper: stoper.c
+stopwatch: stopwatch.c
 	$(CC) -o $@ $^ $(LIBS)

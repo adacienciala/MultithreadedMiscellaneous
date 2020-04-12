@@ -29,11 +29,7 @@ struct player {
 
 pthread_mutex_t muteksik;
 
-//gwiazdki lecace na ukos i odbijajace sie od scianek
-//suchary generowane na dole
-//zaliczone punktowo migaja na zielono na chwile
-
-void *move_player(void *id)
+void *movePlayer(void *id)
 {
     player.alive = 1;
     player.score = 0;
@@ -46,11 +42,11 @@ void *move_player(void *id)
         pthread_mutex_lock(&muteksik);
         attron(COLOR_PAIR(YELLOW_FG));
         mvprintw(player.y, player.x, ">");
-        if(player.shield) mvprintw(player.y, player.x+1, ")");
+        if (player.shield) mvprintw(player.y, player.x+1, ")");
         refresh();
         attroff(COLOR_PAIR(YELLOW_FG));
         pthread_mutex_unlock(&muteksik);
-        switch(getch())
+        switch (getch())
         {
             case 'W':
             case 'w':
@@ -59,7 +55,7 @@ void *move_player(void *id)
                 {
                     pthread_mutex_lock(&muteksik);
                     mvprintw(player.y, player.x, " ");
-                    if(player.shield) mvprintw(player.y, player.x+1, " ");
+                    if (player.shield) mvprintw(player.y, player.x+1, " ");
                     refresh();
                     pthread_mutex_unlock(&muteksik);
                     player.y -= 1;
@@ -72,7 +68,7 @@ void *move_player(void *id)
                 {
                     pthread_mutex_lock(&muteksik);
                     mvprintw(player.y, player.x, " ");
-                    if(player.shield) mvprintw(player.y, player.x+1, " ");
+                    if (player.shield) mvprintw(player.y, player.x+1, " ");
                     refresh();
                     pthread_mutex_unlock(&muteksik);
                     player.y += 1;
@@ -85,7 +81,7 @@ void *move_player(void *id)
                 {
                     pthread_mutex_lock(&muteksik);
                     mvprintw(player.y, player.x, " ");
-                    if(player.shield) mvprintw(player.y, player.x+1, " ");
+                    if (player.shield) mvprintw(player.y, player.x+1, " ");
                     refresh();
                     pthread_mutex_unlock(&muteksik);
                     player.x -= 1;
@@ -98,7 +94,7 @@ void *move_player(void *id)
                 {
                     pthread_mutex_lock(&muteksik);
                     mvprintw(player.y, player.x, " ");
-                    if(player.shield) mvprintw(player.y, player.x+1, " ");
+                    if (player.shield) mvprintw(player.y, player.x+1, " ");
                     refresh();
                     pthread_mutex_unlock(&muteksik);
                     player.x += 1;
@@ -108,7 +104,7 @@ void *move_player(void *id)
     return NULL;
 }
 
-void *move_enemy(void *you)
+void *moveEnemy(void *you)
 {
     int x = max_x-1;
     int y = rand() % (max_y/3-1) + (max_y/3+1);
@@ -160,7 +156,7 @@ void *move_enemy(void *you)
     return NULL;
 }
 
-void *shield_timer (void *id)
+void *shieldTimer (void *id)
 {
     player.shield = 1;
     usleep(1000*MS*10);
@@ -170,7 +166,7 @@ void *shield_timer (void *id)
     return NULL;
 }
 
-void *move_shield(void *timer)
+void *moveShield(void *timer)
 {
     int x = max_x-1;
     int y = rand() % (max_y/3-1) + (max_y/3+1);
@@ -189,7 +185,7 @@ void *move_shield(void *timer)
             refresh();
             attroff(COLOR_PAIR(YELLOW_FG));
             if (player.shield) pthread_cancel(*(pthread_t *)timer);
-            pthread_create((pthread_t *)timer, NULL, shield_timer, NULL);
+            pthread_create((pthread_t *)timer, NULL, shieldTimer, NULL);
             pthread_mutex_unlock(&muteksik);
             return NULL;
         }
@@ -204,7 +200,7 @@ void *move_shield(void *timer)
     return NULL;
 }
 
-void draw_board (void)
+void drawBoard (void)
 {
     clear();
     for (int i=0; i<max_x; ++i)
@@ -217,9 +213,9 @@ void draw_board (void)
     refresh();
 }
 
-void *print_score (void *id)
+void *printScore (void *id)
 {
-    while(player.alive)
+    while (player.alive)
     {
         pthread_mutex_lock(&muteksik);
         mvprintw(0, 0, "SCORE:");
@@ -261,25 +257,28 @@ int main()
     char c;
     do
     {
-        draw_board();
+        drawBoard();
         player.alive = 1;
         speed = 40;
 
-        pthread_create(&you, NULL, move_player, NULL);
-        pthread_create(&scoreboard, NULL, print_score, NULL);
+        pthread_create(&you, NULL, movePlayer, NULL);
+        pthread_create(&scoreboard, NULL, printScore, NULL);
 
         while (pthread_tryjoin_np(you, NULL)) {
             int delay = rand()%3-1;
             usleep(((15*MS*100)+(15*MS*(delay*50)))*speed/40);
-            if (rand()%100>80) pthread_create(&shield, NULL, move_shield, &timer);
-            else pthread_create(&enemy, NULL, move_enemy, &you);
+            if (rand()%100>80) pthread_create(&shield, NULL, moveShield, &timer);
+            else pthread_create(&enemy, NULL, moveEnemy, &you);
         }
-        draw_board();
+        drawBoard();
 
         pthread_mutex_lock(&muteksik);
-        if (player.score/100) mvprintw(max_y / 3 - 1 , max_x / 2 - 6, "SCORE: %d", player.score);
-        else if (player.score/10) mvprintw(max_y / 3 - 1 , max_x / 2 - 5, "SCORE:  %d", player.score);
-        else mvprintw(max_y / 3 - 1 , max_x / 2 - 4, "SCORE: %d", player.score);
+        if (player.score/100) 
+            mvprintw(max_y / 3 - 1 , max_x / 2 - 6, "SCORE: %d", player.score);
+        else if (player.score/10) 
+            mvprintw(max_y / 3 - 1 , max_x / 2 - 5, "SCORE:  %d", player.score);
+        else 
+            mvprintw(max_y / 3 - 1 , max_x / 2 - 4, "SCORE: %d", player.score);
         refresh();
         attron(COLOR_PAIR(RED_FG));
         mvprintw(max_y / 2 - 2, max_x / 2 - 4, "YOU DIED");
@@ -296,7 +295,7 @@ int main()
         while ((c = getchar()) != 'y' && c != 'n');
     } while (c=='y');
 
-    draw_board();
+    drawBoard();
     attron(COLOR_PAIR(RED_FG));
     mvprintw(max_y / 2, max_x / 2 - 4, "WHATEV.");
     attroff(COLOR_PAIR(RED_FG));
